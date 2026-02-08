@@ -50,12 +50,13 @@ type Req struct {
 }
 
 type ReqFilter struct { //nolint:musttag
-	Type     []model.SubjectType `json:"type"`      // or
-	Tag      []string            `json:"tag"`       // and
-	AirDate  []string            `json:"air_date"`  // and
-	Score    []string            `json:"rating"`    // and
-	Rank     []string            `json:"rank"`      // and
-	MetaTags []string            `json:"meta_tags"` // and
+	Type        []model.SubjectType `json:"type"`         // or
+	Tag         []string            `json:"tag"`          // and
+	AirDate     []string            `json:"air_date"`     // and
+	Score       []string            `json:"rating"`       // and
+	RatingCount []string            `json:"rating_count"` // and
+	Rank        []string            `json:"rank"`         // and
+	MetaTags    []string            `json:"meta_tags"`    // and
 
 	// if NSFW subject is enabled
 	NSFW null.Bool `json:"nsfw"`
@@ -66,26 +67,27 @@ type hit struct {
 }
 
 type ResponseSubject struct {
-	Date       *string                   `json:"date"`
-	Platform   *string                   `json:"platform"`
-	Images     res.SubjectImages         `json:"images"`
-	Image      string                    `json:"image"`
-	Summary    string                    `json:"summary"`
-	Name       string                    `json:"name"`
-	NameCN     string                    `json:"name_cn"`
-	Tags       []res.SubjectTag          `json:"tags"`
-	Infobox    res.V0wiki                `json:"infobox"`
-	Rating     res.Rating                `json:"rating"`
-	Collection res.SubjectCollectionStat `json:"collection"`
-	ID         model.SubjectID           `json:"id"`
-	Eps        uint32                    `json:"eps"`
-	MetaTags   []string                  `json:"meta_tags"`
-	Volumes    uint32                    `json:"volumes"`
-	Series     bool                      `json:"series"`
-	Locked     bool                      `json:"locked"`
-	NSFW       bool                      `json:"nsfw"`
-	TypeID     model.SubjectType         `json:"type"`
-	Redirect   model.SubjectID           `json:"-"`
+	Date          *string                   `json:"date"`
+	Platform      *string                   `json:"platform"`
+	Images        res.SubjectImages         `json:"images"`
+	Image         string                    `json:"image"`
+	Summary       string                    `json:"summary"`
+	Name          string                    `json:"name"`
+	NameCN        string                    `json:"name_cn"`
+	Tags          []res.SubjectTag          `json:"tags"`
+	Infobox       res.V0wiki                `json:"infobox"`
+	Rating        res.Rating                `json:"rating"`
+	Collection    res.SubjectCollectionStat `json:"collection"`
+	ID            model.SubjectID           `json:"id"`
+	Eps           uint32                    `json:"eps"`
+	TotalEpisodes int64                     `json:"total_episodes"`
+	MetaTags      []string                  `json:"meta_tags"`
+	Volumes       uint32                    `json:"volumes"`
+	Series        bool                      `json:"series"`
+	Locked        bool                      `json:"locked"`
+	NSFW          bool                      `json:"nsfw"`
+	TypeID        model.SubjectType         `json:"type"`
+	Redirect      model.SubjectID           `json:"-"`
 }
 
 //nolint:funlen
@@ -204,7 +206,7 @@ type meiliSearchResponse struct {
 }
 
 func filterToMeiliFilter(req ReqFilter) ([][]string, error) {
-	var filter = make([][]string, 0, 5+len(req.Tag))
+	var filter = make([][]string, 0, 6+len(req.Tag))
 
 	// OR
 
@@ -253,6 +255,14 @@ func filterToMeiliFilter(req ReqFilter) ([][]string, error) {
 		}
 
 		filter = append(filter, []string{"score " + s})
+	}
+
+	for _, s := range req.RatingCount {
+		if !intFilterPattern.MatchString(s) {
+			return nil, res.BadRequest(fmt.Sprintf(
+				`invalid rating_count filter: %q, should be in the format of "^(>|<|>=|<=|=) *\d+$"`, s))
+		}
+		filter = append(filter, []string{"rating_count " + s})
 	}
 
 	return filter, nil
@@ -350,18 +360,19 @@ func isDigitsOnly(s string) bool {
 func toResponseSubject(s model.Subject, metaTags []tag.Tag) ResponseSubject {
 	images := res.SubjectImage(s.Image)
 	return ResponseSubject{
-		ID:       s.ID,
-		Image:    images.Large,
-		Images:   images,
-		Summary:  s.Summary,
-		Name:     s.Name,
-		Platform: res.PlatformString(s),
-		NameCN:   s.NameCN,
-		Date:     null.NilString(s.Date),
-		Infobox:  compat.V0Wiki(wiki.ParseOmitError(s.Infobox).NonZero()),
-		Volumes:  s.Volumes,
-		Redirect: s.Redirect,
-		Eps:      s.Eps,
+		ID:            s.ID,
+		Image:         images.Large,
+		Images:        images,
+		Summary:       s.Summary,
+		Name:          s.Name,
+		Platform:      res.PlatformString(s),
+		NameCN:        s.NameCN,
+		Date:          null.NilString(s.Date),
+		Infobox:       compat.V0Wiki(wiki.ParseOmitError(s.Infobox).NonZero()),
+		Volumes:       s.Volumes,
+		TotalEpisodes: int64(s.Eps),
+		Redirect:      s.Redirect,
+		Eps:           s.Eps,
 		MetaTags: lo.Map(metaTags, func(item tag.Tag, index int) string {
 			return item.Name
 		}),

@@ -141,6 +141,7 @@ func (r mysqlRepo) updateOrCreateSubjectCollection(
 			SubjectID:   subject.ID,
 			SubjectType: subject.TypeID,
 			UserID:      userID,
+			Type:        uint8(collection.SubjectCollectionDoing),
 		}
 	}
 	collectionSubject, err := r.convertToSubjectCollection(obj)
@@ -394,7 +395,7 @@ func (r mysqlRepo) updateSubjectCollection(
 	obj.Private = uint8(s.Privacy())
 	obj.Type = uint8(s.TypeID())
 
-	if s.TypeID() != original.TypeID() {
+	if isNew || s.TypeID() != original.TypeID() {
 		err := r.updateCollectionTime(obj, s.TypeID(), at)
 		if err != nil {
 			return errgo.Trace(err)

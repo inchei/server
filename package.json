@@ -13,16 +13,16 @@
     "printWidth": 120
   },
   "dependencies": {
-    "@apidevtools/json-schema-ref-parser": "^14.2.1",
-    "js-yaml": "^4.1.0",
-    "lodash": "^4.17.21",
-    "yaml": "^2.8.1"
+    "@apidevtools/json-schema-ref-parser": "^15.2.2",
+    "js-yaml": "^4.1.1",
+    "lodash": "^4.17.23",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
     "colors": "^1.4.0",
     "oas-validator": "^5.0.8",
-    "prettier": "^3.6.2"
+    "prettier": "^3.8.1"
   },
   "nodemonConfig": {
     "restartable": "rs",
