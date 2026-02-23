@@ -559,12 +559,12 @@ func exportPersonCharacterRelations(q *query.Query, w io.Writer) {
 }
 
 type PersonRelation struct {
-	PersonType		string		   `json:"person_type"`
-	PersonID    	model.PersonID `json:"person_id"`
+	PersonType      string         `json:"person_type"`
+	PersonID        model.PersonID `json:"person_id"`
 	RelatedPersonID model.PersonID `json:"related_person_id"`
-	RelationType 	uint32 		   `json:"relation_type"`
-	Spoiler			bool 		   `json:"spoiler"`
-	Ended			bool 		   `json:"ended"`
+	RelationType    uint32         `json:"relation_type"`
+	Spoiler         bool           `json:"spoiler"`
+	Ended           bool           `json:"ended"`
 }
 
 func exportPersonRelations(q *query.Query, w io.Writer) {
@@ -578,12 +578,12 @@ func exportPersonRelations(q *query.Query, w io.Writer) {
 
 		for _, rel := range relations {
 			encode(w, PersonRelation{
-				PersonType: 	 rel.PersonType,
-				PersonID:    	 rel.PersonID,
+				PersonType:      rel.PersonType,
+				PersonID:        rel.PersonID,
 				RelatedPersonID: rel.RelatedPersonID,
-				RelationType: 	 rel.RelationType,
-				Spoiler: 		 rel.Spoiler,
-				Ended:			 rel.Ended,
+				RelationType:    rel.RelationType,
+				Spoiler:         rel.Spoiler,
+				Ended:           rel.Ended,
 			})
 		}
 	}
